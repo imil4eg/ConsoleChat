@@ -12,7 +12,7 @@ CTestTestfile.cmake
 _deps
 
 #VS Code files
-.vscode/*
+*.vscode
 !.vscode/settings.json
 !.vscode/tasks.json
 !.vscode/launch.json
@@ -21,3 +21,6 @@ _deps
 
 # Local History for Visual Studio Code
 .history/
+
+#Build directories 
+*build
