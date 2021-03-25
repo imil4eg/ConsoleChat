@@ -5,10 +5,13 @@ void MessageRouter::join(std::unique_ptr<Connection> connection)
     m_connections.push_back(std::move(connection));
 }
 
-void MessageRouter::send(std::string message)
+void MessageRouter::send(std::string message, const Connection& sender)
 {
     for (auto& connection : m_connections)
     {
+        if (*connection == sender)
+            continue;
+
         connection->send(message);
     }
 }

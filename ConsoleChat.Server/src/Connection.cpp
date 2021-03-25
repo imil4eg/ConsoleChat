@@ -50,7 +50,7 @@ void Connection::start()
                 return;  
             }
 
-            m_messageRouter->send(beast::buffers_to_string(buffer.data()));
+            m_messageRouter->send(beast::buffers_to_string(buffer.data()), *this);
 
             buffer.clear();
         }
