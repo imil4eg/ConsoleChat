@@ -15,7 +15,7 @@ public:
 private:
     void listenRequests();
     void listenConsoleInput();
-
+    
     websocket::stream<tcp::socket> m_webSocket;
     tcp::resolver m_resolver;
 };

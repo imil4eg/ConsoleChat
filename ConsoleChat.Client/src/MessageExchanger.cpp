@@ -62,7 +62,6 @@ void MessageExchanger::listenRequests()
 void MessageExchanger::listenConsoleInput()
 {
     std::string message;
-    beast::flat_buffer buf;
     while (std::getline(std::cin, message))
     {
         m_webSocket.write(net::buffer(message));
