@@ -54,6 +54,8 @@ void MessageExchanger::listenRequests()
         m_webSocket.read(buffer);
 
         std::cout << beast::make_printable(buffer.data()) << '\n';
+    
+        buffer.clear();
     }
 }
 
