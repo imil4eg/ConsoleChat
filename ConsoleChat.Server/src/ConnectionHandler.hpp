@@ -2,19 +2,26 @@
 
 #include <vector>
 
+#include <boost/enable_shared_from_this.hpp>
+
 #include "BoostCommon.hpp"
 #include "MessageRouter.hpp"
 
-class ConnectionHandler
+class ConnectionHandler : 
+public std::enable_shared_from_this<ConnectionHandler>
 {
 public:
-    ConnectionHandler(const net::ip::address& address, unsigned short port);
+    ConnectionHandler(net::io_context& ioc,
+                      const tcp::endpoint endpoint);
     ~ConnectionHandler();
 
     void run();
 
 private:
-    MessageRouter m_messageRouter;
-    net::io_context m_context;
+    void asyncAccept(const boost::system::error_code& error,
+                     tcp::socket socket);
+
+    net::io_context& m_context;
     tcp::acceptor m_acceptor;
+    std::shared_ptr<MessageRouter> m_messageRouter;
 };

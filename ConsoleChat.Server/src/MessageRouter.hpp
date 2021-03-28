@@ -18,10 +18,10 @@ public:
     {    
     }
 
-    void join(std::unique_ptr<Connection> connection);
-    void send(std::string message, const Connection& sender);
+    void join(std::shared_ptr<Connection> connection);
+    void send(std::string message, std::shared_ptr<Connection> sender);
     void disconnect(Connection& connection);
     
 private:
-    std::vector<std::unique_ptr<Connection>> m_connections;
+    std::vector<std::shared_ptr<Connection>> m_connections;
 };

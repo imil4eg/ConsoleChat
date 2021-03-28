@@ -1,16 +1,43 @@
 #include <iostream>
-#include <boost/thread.hpp>
 
 #include "ConnectionHandler.hpp"
 #include "Connection.hpp"
 
-ConnectionHandler::ConnectionHandler(
-    const net::ip::address& address,
-    unsigned short port) :
-    m_context{1},
-    m_acceptor{m_context, {address, port}},
-    m_messageRouter{}
+ConnectionHandler::ConnectionHandler(net::io_context& ioc,
+    const tcp::endpoint endpoint) :
+    m_context{ioc},
+    m_acceptor{ioc},
+    m_messageRouter{std::make_shared<MessageRouter>()}
 {
+    beast::error_code ec;
+
+    m_acceptor.open(endpoint.protocol(), ec);
+    if (ec)
+    {
+        std::cout << "Failed to open\n";
+        return;
+    }
+
+    m_acceptor.set_option(net::socket_base::reuse_address(true), ec);
+    if (ec)
+    {
+        std::cout << "Failed to set option\n";
+        return;
+    }
+
+    m_acceptor.bind(endpoint, ec);
+    if (ec)
+    {
+        std::cout << "Failed to bind\n";
+        return;
+    }
+
+    m_acceptor.listen(net::socket_base::max_listen_connections, ec);
+    if (ec)
+    {
+        std::cout << "Failed to listen\n";
+        return;
+    }
 }
 
 ConnectionHandler::~ConnectionHandler() = default;
@@ -19,20 +46,36 @@ void ConnectionHandler::run()
 {
     std::cout << "Server started.\n";
 
-    for (;;)
+    m_acceptor.async_accept(
+        beast::bind_front_handler(
+            &ConnectionHandler::asyncAccept, 
+            shared_from_this()));
+}
+
+void ConnectionHandler::asyncAccept(const boost::system::error_code& error,
+                     tcp::socket socket)
+{
+    std::cout << "Received connection\n";
+
+    if (error)
     {
-        tcp::socket socket{m_context};
-        m_acceptor.accept(socket);
-
-        std::cout << "Received connection\n";
-
-        auto connection{
-            std::make_unique<Connection>(m_messageRouter, 
-                                         std::move(socket))
-        };
-
-        boost::thread(boost::bind(&Connection::start, &*connection));
-        
-        m_messageRouter.join(std::move(connection));
+        std::cout << "Error: " << error.message() << '\n';
+        return;
     }
+
+    auto connection{
+        std::make_shared<Connection>(m_messageRouter, 
+                                     std::move(socket))
+    };
+
+    m_messageRouter->join(connection);
+
+    connection->start();
+
+    m_acceptor.async_accept(
+        beast::bind_front_handler(
+            &ConnectionHandler::asyncAccept,
+            shared_from_this()
+        )
+    );
 }

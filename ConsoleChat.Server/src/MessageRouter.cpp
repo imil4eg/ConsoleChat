@@ -1,15 +1,15 @@
 #include "MessageRouter.hpp"
 
-void MessageRouter::join(std::unique_ptr<Connection> connection)
+void MessageRouter::join(std::shared_ptr<Connection> connection)
 {
-    m_connections.push_back(std::move(connection));
+    m_connections.push_back(connection);
 }
 
-void MessageRouter::send(std::string message, const Connection& sender)
+void MessageRouter::send(std::string message, std::shared_ptr<Connection> sender)
 {
-    for (auto& connection : m_connections)
+    for (auto connection : m_connections)
     {
-        if (*connection == sender)
+        if (*connection == *sender)
             continue;
 
         connection->send(message);
