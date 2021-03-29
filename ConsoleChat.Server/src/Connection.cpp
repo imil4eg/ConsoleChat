@@ -50,7 +50,7 @@ void Connection::send(std::string message)
     m_webSocket.async_write(
         net::buffer(message),
         beast::bind_front_handler(
-            &Connection::readAsync,
+            &Connection::writeAsync,
         shared_from_this()));
 }
 
@@ -109,10 +109,6 @@ void Connection::writeAsync(const beast::error_code& err,
         std::cerr << "write: " << err.message() << '\n';
         return;
     }
-
-    m_webSocket.async_read(m_buffer,
-    beast::bind_front_handler(&Connection::readAsync, 
-        shared_from_this()));
 }
 
 bool operator==(const Connection& left, const Connection& right)
