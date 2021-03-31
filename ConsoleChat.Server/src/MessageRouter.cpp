@@ -12,7 +12,7 @@ void MessageRouter::send(std::string message, std::shared_ptr<Connection> sender
         if (*connection == *sender)
             continue;
 
-        connection->send(message);
+        connection->send(sender->getUserName() + ": " + message);
     }
 }
 

@@ -12,7 +12,8 @@ Connection::Connection(
     m_messageRouter{messageRouter},
     m_webSocket{std::move(socket)},
     m_id{boost::uuids::random_generator()()},
-    m_messages{}
+    m_messages{},
+    m_userName{}
 {    
 }
 
@@ -67,10 +68,13 @@ void Connection::acceptAsync(const beast::error_code& ec)
         return;
     }
 
-    m_webSocket.async_read(m_buffer,
-    beast::bind_front_handler(
-        &Connection::readAsync,
-    shared_from_this()));
+    m_webSocket.async_write(
+        net::buffer("Please, enter user name:"),
+        beast::bind_front_handler(
+            &Connection::requestUserNameAsync,
+            shared_from_this()
+        )
+    );
 }
 
 void Connection::readAsync(const beast::error_code& err, 
@@ -82,7 +86,7 @@ void Connection::readAsync(const beast::error_code& err,
     if (err == http::error::end_of_stream || 
         err == net::error::eof)
     {
-        std::cout << "User disconnected.\n";
+        std::cout << m_userName << " disconnected.\n";
         m_messageRouter->disconnect(*this);
         return;
     }
@@ -129,6 +133,52 @@ void Connection::writeAsync(const beast::error_code& err,
             )
         );   
     }
+}
+
+void Connection::requestUserNameAsync(
+    const beast::error_code& err,
+        std::size_t bytes_writtern)
+{   
+    UNUSED(bytes_writtern);
+
+    if (err)
+    {
+        std::cout << "write: " << err.message() << '\n';
+        return;
+    }
+
+    m_webSocket.async_read(
+        m_buffer,
+        beast::bind_front_handler(
+            &Connection::onUserNameReceivedAsync,
+            shared_from_this()
+        )
+    );
+}
+
+void Connection::onUserNameReceivedAsync(
+    const beast::error_code& err,
+        std::size_t bytes_writtern)
+{
+    UNUSED(bytes_writtern);
+
+    if (err)
+    {
+        std::cout << "error: " << err.message() << '\n';
+        return;
+    }    
+
+    m_userName = beast::buffers_to_string(m_buffer.data());
+
+    m_buffer.clear();
+
+    m_webSocket.async_read(
+        m_buffer,
+        beast::bind_front_handler(
+            &Connection::readAsync,
+            shared_from_this()
+        )
+    );
 }
 
 bool operator==(const Connection& left, const Connection& right)
