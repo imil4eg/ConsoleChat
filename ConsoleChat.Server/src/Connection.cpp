@@ -11,7 +11,8 @@ Connection::Connection(
     tcp::socket&& socket) : 
     m_messageRouter{messageRouter},
     m_webSocket{std::move(socket)},
-    m_id{boost::uuids::random_generator()()}
+    m_id{boost::uuids::random_generator()()},
+    m_messages{}
 {    
 }
 
@@ -46,7 +47,11 @@ void Connection::start()
  
 void Connection::send(std::string message)
 {
-    std::cout << "Sending message " << message << '\n';
+    m_messages.push(message);
+
+    if (m_messages.size() > 1)
+        return;
+    
     m_webSocket.async_write(
         net::buffer(message),
         beast::bind_front_handler(
@@ -108,6 +113,21 @@ void Connection::writeAsync(const beast::error_code& err,
     {
         std::cerr << "write: " << err.message() << '\n';
         return;
+    }
+
+    std::cout << m_messages.front() << " message was sent.\n";
+
+    m_messages.pop();
+
+    if (!m_messages.empty())
+    {
+        m_webSocket.async_write(
+            net::buffer(m_messages.front()),
+            beast::bind_front_handler(
+                &Connection::writeAsync,
+                shared_from_this()
+            )
+        );   
     }
 }
 

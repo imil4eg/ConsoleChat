@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <string>
+#include <queue>
 
 #include <boost/uuid/uuid.hpp>
 #include "boost/asio/connect.hpp"
@@ -40,4 +41,5 @@ private:
     websocket::stream<tcp::socket> m_webSocket;
     boost::uuids::uuid m_id;
     beast::flat_buffer m_buffer;
+    std::queue<std::string> m_messages;
 };
