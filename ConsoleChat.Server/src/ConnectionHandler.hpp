@@ -5,7 +5,7 @@
 #include <boost/enable_shared_from_this.hpp>
 
 #include "BoostCommon.hpp"
-#include "MessageRouter.hpp"
+#include "RoomsHolder.hpp"
 
 class ConnectionHandler : 
 public std::enable_shared_from_this<ConnectionHandler>
@@ -23,5 +23,5 @@ private:
 
     net::io_context& m_context;
     tcp::acceptor m_acceptor;
-    std::shared_ptr<MessageRouter> m_messageRouter;
+    std::shared_ptr<RoomsHolder> m_roomsHolder;
 };

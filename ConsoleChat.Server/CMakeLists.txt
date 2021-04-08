@@ -16,5 +16,5 @@ include_directories(${Boost_INCLUDE_DIRS} src ../ConsoleChat.Common/src)
 
 link_directories(${Boost_LIBRARY_DIRS})
 
-add_executable(ConsoleChat.Server main.cpp src/ConnectionHandler.cpp src/Connection.cpp src/MessageRouter.cpp)
+add_executable(ConsoleChat.Server main.cpp src/ConnectionHandler.cpp src/Connection.cpp src/RoomsHolder.cpp src/Room.cpp)
 target_link_libraries(ConsoleChat.Server ${Boost_LIBRARIES})

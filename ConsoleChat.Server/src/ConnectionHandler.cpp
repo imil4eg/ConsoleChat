@@ -7,7 +7,7 @@ ConnectionHandler::ConnectionHandler(net::io_context& ioc,
     const tcp::endpoint endpoint) :
     m_context{ioc},
     m_acceptor{ioc},
-    m_messageRouter{std::make_shared<MessageRouter>()}
+    m_roomsHolder{std::make_shared<RoomsHolder>()}
 {
     beast::error_code ec;
 
@@ -64,11 +64,8 @@ void ConnectionHandler::asyncAccept(const boost::system::error_code& error,
     }
 
     auto connection{
-        std::make_shared<Connection>(m_messageRouter, 
-                                     std::move(socket))
+        std::make_shared<Connection>(std::move(socket), m_roomsHolder)
     };
-
-    m_messageRouter->join(connection);
 
     connection->start();
 
